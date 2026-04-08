@@ -1,0 +1,74 @@
+[
+  {
+    "title": "Draft follow-up email to conference speaker",
+    "source": "meeting",
+    "effort": "10min",
+    "context": "Met at AI in Education panel. Discussed potential collaboration on metacognition research."
+  },
+  {
+    "title": "Review and comment on team's project proposal",
+    "source": "email",
+    "effort": "30min",
+    "context": "Sarah sent v2 of the proposal yesterday. Needs feedback by Thursday."
+  },
+  {
+    "title": "Prep talking points for advisory board call",
+    "source": "calendar",
+    "effort": "30min",
+    "context": "Monthly check-in with advisory board. Focus on Q2 milestones and budget update."
+  },
+  {
+    "title": "Summarize key findings from latest research paper",
+    "source": "task",
+    "effort": "30min",
+    "context": "New paper on cognitive offloading in AI-assisted learning. Relevant to current project."
+  },
+  {
+    "title": "Send thank-you note to workshop participants",
+    "source": "email",
+    "effort": "10min",
+    "context": "Friday's AI literacy workshop had 24 attendees. Include link to resources shared."
+  },
+  {
+    "title": "Update project timeline in shared doc",
+    "source": "task",
+    "effort": "10min",
+    "context": "Phase 2 milestones shifted after last week's meeting. Update Gantt chart."
+  },
+  {
+    "title": "Write LinkedIn post about workshop takeaways",
+    "source": "content",
+    "effort": "30min",
+    "context": "Three key insights from Friday's session worth sharing publicly."
+  },
+  {
+    "title": "Review candidate applications for research assistant",
+    "source": "email",
+    "effort": "60min",
+    "context": "12 applications received. Need to shortlist top 5 by Monday."
+  },
+  {
+    "title": "Outline next newsletter issue",
+    "source": "content",
+    "effort": "30min",
+    "context": "Theme: practical AI tools for educators. Include 3 tool reviews and 1 interview excerpt."
+  },
+  {
+    "title": "Schedule and prep for 1:1 with new team member",
+    "source": "calendar",
+    "effort": "10min",
+    "context": "Jamie started Monday. First check-in to discuss onboarding and initial projects."
+  },
+  {
+    "title": "Compile data for quarterly impact report",
+    "source": "task",
+    "effort": "60min",
+    "context": "Need engagement metrics, survey results, and 3 case studies for funder update."
+  },
+  {
+    "title": "Respond to journalist inquiry about AI in K-12",
+    "source": "email",
+    "effort": "10min",
+    "context": "EdWeek reporter wants a quote for article running next week. Quick turnaround."
+  }
+]

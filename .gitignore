@@ -1,0 +1,7 @@
+task_tinder.db
+task_tinder.db-shm
+task_tinder.db-wal
+delegations.jsonl
+__pycache__/
+*.pyc
+.DS_Store

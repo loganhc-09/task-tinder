@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Task Tinder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f6f5f1;
+  --surface: #ffffff;
+  --surface-2: #f0efe9;
+  --surface-3: #e8e6df;
+  --border: rgba(0,0,0,.07);
+  --border-b: rgba(0,0,0,.12);
+  --text: #3d3a34;
+  --text-dim: #9c9789;
+  --text-bright: #1a1815;
+  --accent: #7c5cfc;
+  --accent-s: rgba(124,92,252,.08);
+  --green: #16a163;
+  --green-s: rgba(22,161,99,.07);
+  --red: #dc4a4a;
+  --red-s: rgba(220,74,74,.07);
+  --amber: #c08b1a;
+  --teal: #0f8e7e;
+  --teal-s: rgba(15,142,126,.06);
+  --mono: 'DM Mono', 'SF Mono', monospace;
+  --sans: 'Outfit', -apple-system, sans-serif;
+  --sh-s: 0 1px 3px rgba(0,0,0,.04);
+  --sh-m: 0 4px 12px rgba(0,0,0,.06);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:var(--sans); background:var(--bg); color:var(--text); min-height:100vh; -webkit-font-smoothing:antialiased; }
+
+.app { max-width:480px; margin:0 auto; padding:24px 20px; }
+
+.header { display:flex; align-items:baseline; justify-content:space-between; margin-bottom:24px; }
+.header h1 { font-size:22px; font-weight:600; color:var(--text-bright); letter-spacing:-.02em; }
+.header .date { font-family:var(--mono); font-size:11px; color:var(--text-dim); }
+
+/* Budget selector */
+.budget-bar { display:flex; gap:3px; margin-bottom:24px; background:var(--surface-2); border-radius:10px; padding:3px; }
+.budget-btn { flex:1; padding:9px 0; border:none; border-radius:8px; background:transparent; color:var(--text-dim); font-family:var(--mono); font-size:12px; cursor:pointer; transition:all .2s; }
+.budget-btn:hover { color:var(--text); }
+.budget-btn.active { background:var(--surface); color:var(--text-bright); box-shadow:var(--sh-s); }
+
+/* Card stack */
+.card-stack { position:relative; height:320px; margin-bottom:16px; }
+.swipe-card { position:absolute; width:100%; height:300px; background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:24px; cursor:grab; user-select:none; touch-action:none; display:flex; flex-direction:column; box-shadow:var(--sh-m); will-change:transform; }
+.swipe-card:active { cursor:grabbing; }
+.swipe-card.entering { z-index:3; }
+.swipe-card.behind-1 { transform:scale(.96) translateY(6px); opacity:.4; pointer-events:none; z-index:2; }
+.swipe-card.behind-1 * { visibility:hidden; }
+.swipe-card.behind-2 { transform:scale(.92) translateY(12px); opacity:.2; pointer-events:none; z-index:1; }
+.swipe-card.behind-2 * { visibility:hidden; }
+
+.swipe-indicator { position:absolute; top:18px; font-family:var(--mono); font-size:13px; font-weight:500; letter-spacing:.08em; text-transform:uppercase; padding:4px 14px; border-radius:8px; opacity:0; pointer-events:none; }
+.swipe-right { right:18px; color:var(--green); border:2px solid var(--green); background:var(--green-s); }
+.swipe-left { left:18px; color:var(--red); border:2px solid var(--red); background:var(--red-s); }
+
+.card-source { font-family:var(--mono); font-size:10px; letter-spacing:.06em; text-transform:uppercase; margin-bottom:12px; display:flex; align-items:center; gap:8px; }
+.source-badge { font-family:var(--mono); font-size:9px; letter-spacing:.08em; text-transform:uppercase; padding:3px 8px; border-radius:100px; }
+.badge-email { background:rgba(220,74,74,.08); color:var(--red); }
+.badge-meeting { background:rgba(168,85,247,.1); color:#A855F7; }
+.badge-calendar { background:rgba(192,139,26,.08); color:var(--amber); }
+.badge-task { background:var(--surface-2); color:var(--text-dim); }
+.badge-content { background:rgba(124,92,252,.08); color:var(--accent); }
+
+.effort-pill { font-family:var(--mono); font-size:10px; color:var(--text-dim); background:var(--surface-2); padding:3px 8px; border-radius:100px; }
+
+.card-title { font-size:17px; font-weight:500; line-height:1.4; color:var(--text-bright); flex:1; letter-spacing:-.01em; }
+.card-context { font-size:12px; color:var(--text-dim); line-height:1.5; margin-top:8px; }
+
+/* Action buttons */
+.swipe-actions { display:flex; justify-content:center; gap:14px; margin-bottom:20px; }
+.swipe-action-btn { width:50px; height:50px; border-radius:50%; border:1px solid var(--border-b); background:var(--surface); color:var(--text-dim); font-size:18px; cursor:pointer; transition:all .2s; display:flex; align-items:center; justify-content:center; box-shadow:var(--sh-s); }
+.swipe-action-btn:hover { transform:scale(1.12); }
+.swipe-action-btn.accept { color:var(--green); }
+.swipe-action-btn.accept:hover { background:var(--green-s); border-color:var(--green); }
+.swipe-action-btn.reject { color:var(--red); }
+.swipe-action-btn.reject:hover { background:var(--red-s); border-color:var(--red); }
+.swipe-action-btn.delegate { color:var(--accent); }
+.swipe-action-btn.delegate:hover { background:var(--accent-s); border-color:var(--accent); }
+
+.card-hint { font-family:var(--mono); font-size:10px; color:var(--text-dim); text-align:center; opacity:.5; margin-bottom:20px; }
+
+/* Sprint queue bar */
+.sprint-queue-bar { display:flex; gap:6px; padding:8px 12px; margin-bottom:10px; background:var(--surface); border:1px solid var(--green); border-radius:10px; align-items:center; font-family:var(--mono); font-size:10px; animation:cardIn .3s ease; }
+.sprint-queue-bar .sq-emoji { font-size:14px; }
+.sprint-queue-bar .sq-name { flex:1; color:var(--text); }
+.sprint-queue-bar .sq-remove { background:none; border:none; color:var(--text-dim); cursor:pointer; font-size:14px; }
+
+/* Sprint mode */
+.sprint-overlay { display:none; }
+.sprint-overlay.active { display:block; }
+.sprint-header { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px 20px; margin-bottom:14px; display:flex; align-items:center; justify-content:space-between; box-shadow:var(--sh-s); }
+.sprint-timer { font-family:var(--mono); font-size:28px; font-weight:300; color:var(--text-bright); }
+.sprint-progress { font-family:var(--mono); font-size:11px; color:var(--text-dim); }
+.sprint-task-item { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin-bottom:8px; transition:all .3s; }
+.sprint-task-item.current { border-color:var(--green); border-left:3px solid var(--green); }
+.sprint-task-item.completed { opacity:.4; text-decoration:line-through; }
+.sprint-task-name { font-size:14px; color:var(--text-bright); margin-bottom:4px; }
+.sprint-task-source { font-family:var(--mono); font-size:10px; color:var(--text-dim); }
+.sprint-complete-btn { width:100%; padding:12px; border:1px solid var(--green); border-radius:10px; background:var(--green-s); color:var(--green); font-family:var(--mono); font-size:12px; font-weight:500; cursor:pointer; margin-top:6px; transition:all .2s; }
+.sprint-complete-btn:hover { background:var(--green); color:#fff; }
+.sprint-end-btn { width:100%; padding:10px; border:1px solid var(--border); border-radius:10px; background:transparent; color:var(--text-dim); font-family:var(--mono); font-size:11px; cursor:pointer; margin-top:12px; }
+
+/* Metacognition capture modal */
+.meta-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:100; align-items:center; justify-content:center; }
+.meta-modal.active { display:flex; }
+.meta-box { background:var(--surface); border-radius:16px; padding:28px; max-width:420px; width:90%; box-shadow:0 20px 40px rgba(0,0,0,.15); }
+.meta-box h3 { font-size:16px; font-weight:600; color:var(--text-bright); margin-bottom:4px; }
+.meta-box .meta-subtitle { font-family:var(--mono); font-size:11px; color:var(--text-dim); margin-bottom:16px; }
+.meta-box textarea { width:100%; min-height:100px; padding:12px; border:1px solid var(--border-b); border-radius:10px; font-family:var(--sans); font-size:13px; color:var(--text); background:var(--bg); resize:vertical; line-height:1.5; }
+.meta-box textarea:focus { outline:none; border-color:var(--green); box-shadow:0 0 0 3px var(--green-s); }
+.meta-box textarea::placeholder { color:var(--text-dim); }
+.meta-actions { display:flex; gap:8px; margin-top:14px; }
+.meta-btn { flex:1; padding:10px; border-radius:8px; font-family:var(--mono); font-size:12px; cursor:pointer; transition:all .15s; border:1px solid var(--border); background:transparent; color:var(--text-dim); }
+.meta-btn.primary { background:var(--green); color:#fff; border-color:var(--green); }
+.meta-btn.primary:hover { background:#14905a; }
+.meta-btn:hover { border-color:var(--border-b); color:var(--text); }
+
+/* Stats */
+.stats-strip { display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--border); border-radius:12px; overflow:hidden; margin-top:24px; }
+.stat-item { text-align:center; padding:16px 8px; background:var(--surface); }
+.stat-value { font-family:var(--mono); font-size:20px; color:var(--text-bright); }
+.stat-label { font-family:var(--mono); font-size:9px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.1em; margin-top:4px; }
+
+/* Empty state */
+.empty-deck { text-align:center; padding:80px 20px; color:var(--text-dim); font-size:14px; }
+.empty-deck .empty-emoji { font-size:32px; margin-bottom:12px; }
+
+/* Add task */
+.add-task-bar { display:flex; gap:8px; margin-top:16px; }
+.add-task-bar input { flex:1; padding:10px 14px; border:1px solid var(--border); border-radius:10px; font-family:var(--sans); font-size:13px; color:var(--text); background:var(--surface); }
+.add-task-bar input:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-s); }
+.add-task-bar button { padding:10px 16px; border:none; border-radius:10px; background:var(--text-bright); color:var(--bg); font-family:var(--mono); font-size:12px; cursor:pointer; }
+
+/* Toast */
+.toast { position:fixed; bottom:1rem; left:50%; transform:translateX(-50%); background:var(--green); color:#fff; padding:.5rem 1rem; border-radius:.5rem; z-index:99; font-family:var(--mono); font-size:12px; transition:opacity .3s; }
+
+@keyframes cardIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="header">
+    <h1>Task Tinder</h1>
+    <span class="date" id="date"></span>
+  </div>
+
+  <!-- Budget selector -->
+  <div class="budget-bar">
+    <button class="budget-btn" data-budget="all" onclick="setBudget('all')">All</button>
+    <button class="budget-btn" data-budget="10min" onclick="setBudget('10min')">10 min</button>
+    <button class="budget-btn active" data-budget="30min" onclick="setBudget('30min')">30 min</button>
+    <button class="budget-btn" data-budget="60min" onclick="setBudget('60min')">60 min</button>
+  </div>
+
+  <!-- Main swipe view -->
+  <div id="swipe-view">
+    <div class="card-stack" id="card-stack"></div>
+    <div class="swipe-actions">
+      <button class="swipe-action-btn reject" onclick="dismissCard('skip')" title="Skip">&#10005;</button>
+      <button class="swipe-action-btn delegate" onclick="dismissCard('delegate')" title="Delegate to Claude">&#9889;</button>
+      <button class="swipe-action-btn accept" onclick="acceptCard()" title="Do it">&#10003;</button>
+    </div>
+    <div class="card-hint">swipe or tap &middot; queue 3 tasks to start a sprint</div>
+    <div id="sprint-queue"></div>
+  </div>
+
+  <!-- Sprint mode -->
+  <div class="sprint-overlay" id="sprint-overlay">
+    <div class="sprint-header">
+      <div>
+        <div class="sprint-timer" id="sprint-timer">--:--</div>
+        <div class="sprint-progress" id="sprint-progress">0 / 0 tasks</div>
+      </div>
+      <button class="sprint-end-btn" onclick="endSprint()" style="width:auto;margin:0;padding:8px 14px">end sprint</button>
+    </div>
+    <div id="sprint-tasks"></div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-strip" id="stats">
+    <div class="stat-item"><div class="stat-value" id="s-done">0</div><div class="stat-label">Done</div></div>
+    <div class="stat-item"><div class="stat-value" id="s-delegated">0</div><div class="stat-label">Delegated</div></div>
+    <div class="stat-item"><div class="stat-value" id="s-sprints">0</div><div class="stat-label">Sprints</div></div>
+    <div class="stat-item"><div class="stat-value" id="s-pending">0</div><div class="stat-label">Pending</div></div>
+  </div>
+
+  <!-- Add task -->
+  <div class="add-task-bar">
+    <input type="text" id="new-task" placeholder="Add a task..." onkeydown="if(event.key==='Enter')addTask()">
+    <button onclick="addTask()">add</button>
+  </div>
+</div>
+
+<!-- Metacognition capture modal -->
+<div class="meta-modal" id="meta-modal">
+  <div class="meta-box">
+    <h3>How did you do it?</h3>
+    <div class="meta-subtitle">Capture your method so the system learns your patterns</div>
+    <textarea id="meta-notes" placeholder="e.g. Pulled up the old proposal, adapted the framing for this audience, sent from my phone..."></textarea>
+    <div class="meta-actions">
+      <button class="meta-btn" onclick="skipMeta()">skip</button>
+      <button class="meta-btn primary" onclick="saveMeta()">save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const A = '';  // API base — empty for same origin
+let deck = [];
+let deckIdx = 0;
+let budget = '30min';
+let sprintQueue = [];
+let sprintIdx = 0;
+let sprintTimer = null;
+let sprintSeconds = 0;
+let sessionId = null;
+let currentCompleting = null;
+let sprintStartTime = null;
+
+// ── Init ──
+document.getElementById('date').textContent = new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+loadDeck();
+loadStats();
+
+// ── Budget ──
+function setBudget(b) {
+  budget = b;
+  document.querySelectorAll('.budget-btn').forEach(btn =>
+    btn.classList.toggle('active', btn.dataset.budget === b)
+  );
+  loadDeck();
+}
+
+// ── Load tasks ──
+async function loadDeck() {
+  const url = budget === 'all' ? `${A}/api/tasks` : `${A}/api/tasks?budget=${budget}`;
+  try {
+    const r = await (await fetch(url)).json();
+    deck = r.tasks || [];
+    deckIdx = 0;
+    renderCards();
+  } catch (e) {
+    document.getElementById('card-stack').innerHTML = '<div class="empty-deck"><div class="empty-emoji">&#128546;</div>Could not load tasks</div>';
+  }
+}
+
+// ── Render card stack ──
+function renderCards() {
+  const stack = document.getElementById('card-stack');
+  if (deckIdx >= deck.length) {
+    stack.innerHTML = '<div class="empty-deck"><div class="empty-emoji">&#10024;</div>All caught up. Nice work.</div>';
+    return;
+  }
+  let html = '';
+  for (let i = 0; i < 3 && deckIdx + i < deck.length; i++) {
+    const t = deck[deckIdx + i];
+    const cls = i === 0 ? 'entering' : i === 1 ? 'behind-1' : 'behind-2';
+    const badge = t.source || 'task';
+    html += `<div class="swipe-card ${cls}" data-id="${t.id}">
+      <span class="swipe-indicator swipe-right">Queue</span>
+      <span class="swipe-indicator swipe-left">Skip</span>
+      <div class="card-source">
+        <span class="source-badge badge-${esc(badge)}">${esc(badge)}</span>
+        <span class="effort-pill">${esc(t.effort || '10min')}</span>
+      </div>
+      <div class="card-title">${esc(t.title)}</div>
+      ${t.context ? `<div class="card-context">${esc(t.context)}</div>` : ''}
+    </div>`;
+  }
+  stack.innerHTML = html;
+  const top = stack.querySelector('.swipe-card.entering');
+  if (top) initSwipe(top);
+}
+
+// ── Swipe physics ──
+function initSwipe(card) {
+  let startX = 0, startY = 0, dx = 0, dragging = false;
+  const onStart = (e) => {
+    if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'BUTTON') return;
+    dragging = true;
+    const pt = e.touches ? e.touches[0] : e;
+    startX = pt.clientX; startY = pt.clientY;
+    card.style.transition = 'none';
+  };
+  const onMove = (e) => {
+    if (!dragging) return;
+    const pt = e.touches ? e.touches[0] : e;
+    dx = pt.clientX - startX;
+    const rot = dx * 0.08;
+    card.style.transform = `translateX(${dx}px) rotate(${rot}deg)`;
+    // Show indicators
+    const ri = card.querySelector('.swipe-right');
+    const li = card.querySelector('.swipe-left');
+    if (ri) ri.style.opacity = Math.min(1, Math.max(0, dx / 80));
+    if (li) li.style.opacity = Math.min(1, Math.max(0, -dx / 80));
+  };
+  const onEnd = () => {
+    if (!dragging) return;
+    dragging = false;
+    card.style.transition = 'transform .3s ease, opacity .3s ease';
+    if (dx > 80) {
+      animOut('right', () => { acceptCard(); });
+      return;
+    } else if (dx < -80) {
+      animOut('left', () => { dismissCard('skip'); });
+      return;
+    }
+    card.style.transform = '';
+    const ri = card.querySelector('.swipe-right');
+    const li = card.querySelector('.swipe-left');
+    if (ri) ri.style.opacity = 0;
+    if (li) li.style.opacity = 0;
+  };
+  card.addEventListener('mousedown', onStart);
+  card.addEventListener('mousemove', onMove);
+  card.addEventListener('mouseup', onEnd);
+  card.addEventListener('mouseleave', onEnd);
+  card.addEventListener('touchstart', onStart, { passive: true });
+  card.addEventListener('touchmove', onMove, { passive: true });
+  card.addEventListener('touchend', onEnd);
+}
+
+function animOut(dir, cb) {
+  const card = document.querySelector('.swipe-card.entering');
+  if (!card) { if (cb) cb(); return; }
+  card.style.transition = 'transform .35s ease, opacity .35s ease';
+  card.style.transform = `translateX(${dir === 'right' ? 400 : -400}px) rotate(${dir === 'right' ? 20 : -20}deg)`;
+  card.style.opacity = '0';
+  setTimeout(() => { if (cb) cb(); }, 350);
+}
+
+// ── Card actions ──
+function acceptCard() {
+  if (deckIdx >= deck.length) return;
+  const t = deck[deckIdx];
+  sprintQueue.push(t);
+  renderQueue();
+  deckIdx++;
+  renderCards();
+  if (sprintQueue.length >= 3) startSprint();
+}
+
+async function dismissCard(reason) {
+  if (deckIdx >= deck.length) return;
+  const t = deck[deckIdx];
+  await fetch(`${A}/api/dismiss`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ task_id: t.id, reason })
+  });
+  if (reason === 'delegate') showToast('Delegated to Claude');
+  deckIdx++;
+  renderCards();
+  loadStats();
+}
+
+// ── Sprint queue ──
+function renderQueue() {
+  const el = document.getElementById('sprint-queue');
+  if (!sprintQueue.length) { el.innerHTML = ''; return; }
+  el.innerHTML = sprintQueue.map((t, i) =>
+    `<div class="sprint-queue-bar" style="animation-delay:${i * 0.05}s">
+      <span class="sq-emoji">&#9889;</span>
+      <span class="sq-name">${esc(t.title)}</span>
+      <button class="sq-remove" onclick="removeFromQueue(${i})">&#10005;</button>
+    </div>`
+  ).join('');
+}
+
+function removeFromQueue(i) {
+  sprintQueue.splice(i, 1);
+  renderQueue();
+}
+
+// ── Sprint mode ──
+async function startSprint() {
+  document.getElementById('swipe-view').style.display = 'none';
+  const overlay = document.getElementById('sprint-overlay');
+  overlay.classList.add('active');
+  sprintIdx = 0;
+  sprintSeconds = 0;
+  sprintStartTime = Date.now();
+
+  // Start session
+  const r = await (await fetch(`${A}/api/session`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'start', budget })
+  })).json();
+  sessionId = r.session_id;
+
+  renderSprintTasks();
+  sprintTimer = setInterval(() => {
+    sprintSeconds++;
+    const m = Math.floor(sprintSeconds / 60);
+    const s = sprintSeconds % 60;
+    document.getElementById('sprint-timer').textContent =
+      `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  }, 1000);
+}
+
+function renderSprintTasks() {
+  const el = document.getElementById('sprint-tasks');
+  document.getElementById('sprint-progress').textContent =
+    `${sprintIdx} / ${sprintQueue.length} tasks`;
+  el.innerHTML = sprintQueue.map((t, i) => {
+    const cls = i < sprintIdx ? 'completed' : i === sprintIdx ? 'current' : '';
+    return `<div class="sprint-task-item ${cls}">
+      <div class="sprint-task-name">${esc(t.title)}</div>
+      <div class="sprint-task-source">${esc(t.source || 'task')} &middot; ${esc(t.effort || '10min')}</div>
+      ${i === sprintIdx ? '<button class="sprint-complete-btn" onclick="completeCurrent()">mark complete</button>' : ''}
+    </div>`;
+  }).join('');
+}
+
+function completeCurrent() {
+  if (sprintIdx >= sprintQueue.length) return;
+  currentCompleting = sprintQueue[sprintIdx];
+  // Show metacognition modal
+  document.getElementById('meta-modal').classList.add('active');
+  document.getElementById('meta-notes').value = '';
+  document.getElementById('meta-notes').focus();
+}
+
+async function saveMeta() {
+  const notes = document.getElementById('meta-notes').value.trim();
+  await finishTask(notes);
+}
+
+async function skipMeta() {
+  await finishTask('');
+}
+
+async function finishTask(notes) {
+  document.getElementById('meta-modal').classList.remove('active');
+  if (!currentCompleting) return;
+  const elapsed = Math.floor((Date.now() - sprintStartTime) / 1000);
+  await fetch(`${A}/api/complete`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      task_id: currentCompleting.id,
+      method_notes: notes,
+      time_taken_sec: elapsed
+    })
+  });
+  currentCompleting = null;
+  sprintIdx++;
+  if (sprintIdx >= sprintQueue.length) {
+    endSprint();
+  } else {
+    sprintStartTime = Date.now();
+    renderSprintTasks();
+  }
+}
+
+async function endSprint() {
+  clearInterval(sprintTimer);
+  const stats = {
+    completed: sprintIdx,
+    delegated: 0,
+    skipped: sprintQueue.length - sprintIdx
+  };
+  if (sessionId) {
+    await fetch(`${A}/api/session`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'end', session_id: sessionId, stats })
+    });
+  }
+  showToast(`Sprint done! ${sprintIdx} task${sprintIdx !== 1 ? 's' : ''} completed`);
+  sprintQueue = [];
+  sessionId = null;
+  document.getElementById('sprint-overlay').classList.remove('active');
+  document.getElementById('swipe-view').style.display = '';
+  document.getElementById('sprint-queue').innerHTML = '';
+  loadDeck();
+  loadStats();
+}
+
+// ── Stats ──
+async function loadStats() {
+  try {
+    const r = await (await fetch(`${A}/api/stats`)).json();
+    document.getElementById('s-done').textContent = r.completed || 0;
+    document.getElementById('s-delegated').textContent = r.delegated || 0;
+    document.getElementById('s-sprints').textContent = r.sessions || 0;
+    document.getElementById('s-pending').textContent = r.pending || 0;
+  } catch (e) {}
+}
+
+// ── Add task ──
+async function addTask() {
+  const input = document.getElementById('new-task');
+  const title = input.value.trim();
+  if (!title) return;
+  await fetch(`${A}/api/tasks`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ title, effort: budget === 'all' ? '10min' : budget })
+  });
+  input.value = '';
+  loadDeck();
+  loadStats();
+  showToast('Task added');
+}
+
+// ── Utils ──
+function esc(s) {
+  if (!s) return '';
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+function showToast(msg) {
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 300); }, 2000);
+}
+</script>
+</body>
+</html>
