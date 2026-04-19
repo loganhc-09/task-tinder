@@ -6,6 +6,8 @@ A metacognition-forcing task triage system. Swipe through your tasks like cards,
 
 Built with Claude Code. By [Logan Currie](https://logancurrie.com).
 
+> **Part of a larger system.** Task Tinder is one interface to [Claude Chief of Staff](https://github.com/loganhc-09/claude-chief-of-staff), the architecture for turning Claude Code into a persistent AI operational layer. See the [full system writeup](https://github.com/loganhc-09/claude-chief-of-staff) for how this fits alongside memory, briefings, and learning loops.
+
 ## How It Works
 
 1. **Set your time budget** — 10, 30, or 60 minutes
